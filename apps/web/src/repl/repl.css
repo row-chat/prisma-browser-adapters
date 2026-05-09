@@ -1,0 +1,34 @@
+.repl-history {
+  height: 100%;
+  overflow: auto;
+  padding: 8px;
+  font-family: monospace;
+  font-size: 13px;
+  background: #1e1e1e;
+  box-sizing: border-box;
+}
+
+.repl-history:focus {
+  outline: none;
+}
+
+.repl-entry {
+  margin-bottom: 12px;
+}
+
+.repl-input {
+  color: #888;
+}
+
+.repl-output {
+  margin: 4px 0;
+  white-space: pre-wrap;
+}
+
+.repl-output-ok {
+  color: #8f8;
+}
+
+.repl-output-err {
+  color: #e55;
+}

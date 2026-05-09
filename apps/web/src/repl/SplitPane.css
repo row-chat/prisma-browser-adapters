@@ -1,0 +1,24 @@
+.split-pane {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.split-left,
+.split-right {
+  overflow: hidden;
+  min-width: 0;
+  height: 100%;
+}
+
+.split-divider {
+  width: 5px;
+  cursor: col-resize;
+  background: #333;
+  flex-shrink: 0;
+}
+
+.split-divider:hover {
+  background: #555;
+}

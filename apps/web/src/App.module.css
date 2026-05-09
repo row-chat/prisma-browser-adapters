@@ -1,0 +1,16 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.viewPane {
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  display: none;
+}
+
+.viewPane[data-active='true'] {
+  display: flex;
+}

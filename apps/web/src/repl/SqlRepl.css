@@ -1,0 +1,17 @@
+.sql-editor {
+  height: 100%;
+  display: flex;
+}
+
+.sql-textarea {
+  flex: 1;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  border: none;
+  padding: 8px;
+  font-family: monospace;
+  font-size: 14px;
+  resize: none;
+  outline: none;
+  tab-size: 2;
+}

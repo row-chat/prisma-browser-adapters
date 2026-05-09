@@ -1,0 +1,27 @@
+.button {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: var(--mantine-color-dimmed);
+  background-color: transparent;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+.button:hover {
+  background-color: var(--mantine-color-default-hover);
+  color: var(--mantine-color-text);
+}
+
+.button[data-active='true'] {
+  color: var(--mantine-color-white);
+  background-color: var(--mantine-color-blue-filled);
+}
+
+.button[data-active='true']:hover {
+  background-color: var(--mantine-color-blue-filled-hover);
+}

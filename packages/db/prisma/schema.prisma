@@ -1,0 +1,146 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["partialIndexes"]
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Album {
+  albumId  Int     @id @default(autoincrement()) @map("AlbumId")
+  title    String  @map("Title")
+  artistId Int     @map("ArtistId")
+  artist   Artist  @relation(fields: [artistId], references: [artistId], onDelete: NoAction, onUpdate: NoAction)
+  track    Track[]
+
+  @@index([artistId], map: "IFK_AlbumArtistId")
+}
+
+model Artist {
+  artistId Int     @id @default(autoincrement()) @map("ArtistId")
+  name     String? @map("Name")
+  album    Album[]
+}
+
+model Customer {
+  customerId   Int       @id @default(autoincrement()) @map("CustomerId")
+  firstName    String    @map("FirstName")
+  lastName     String    @map("LastName")
+  company      String?   @map("Company")
+  address      String?   @map("Address")
+  city         String?   @map("City")
+  state        String?   @map("State")
+  country      String?   @map("Country")
+  postalCode   String?   @map("PostalCode")
+  phone        String?   @map("Phone")
+  fax          String?   @map("Fax")
+  email        String    @map("Email")
+  supportRepId Int?      @map("SupportRepId")
+  employee     Employee? @relation(fields: [supportRepId], references: [employeeId], onDelete: NoAction, onUpdate: NoAction)
+  invoice      Invoice[]
+
+  @@index([supportRepId], map: "IFK_CustomerSupportRepId")
+}
+
+model Employee {
+  employeeId    Int        @id @default(autoincrement()) @map("EmployeeId")
+  lastName      String     @map("LastName")
+  firstName     String     @map("FirstName")
+  title         String?    @map("Title")
+  reportsTo     Int?       @map("ReportsTo")
+  birthDate     DateTime?  @map("BirthDate")
+  hireDate      DateTime?  @map("HireDate")
+  address       String?    @map("Address")
+  city          String?    @map("City")
+  state         String?    @map("State")
+  country       String?    @map("Country")
+  postalCode    String?    @map("PostalCode")
+  phone         String?    @map("Phone")
+  fax           String?    @map("Fax")
+  email         String?    @map("Email")
+  customer      Customer[]
+  employee      Employee?  @relation("EmployeeToEmployee", fields: [reportsTo], references: [employeeId], onDelete: NoAction, onUpdate: NoAction)
+  otherEmployee Employee[] @relation("EmployeeToEmployee")
+
+  @@index([reportsTo], map: "IFK_EmployeeReportsTo")
+}
+
+model Genre {
+  genreId Int     @id @default(autoincrement()) @map("GenreId")
+  name    String? @map("Name")
+  track   Track[]
+}
+
+model Invoice {
+  invoiceId         Int           @id @default(autoincrement()) @map("InvoiceId")
+  customerId        Int           @map("CustomerId")
+  invoiceDate       DateTime      @map("InvoiceDate")
+  billingAddress    String?       @map("BillingAddress")
+  billingCity       String?       @map("BillingCity")
+  billingState      String?       @map("BillingState")
+  billingCountry    String?       @map("BillingCountry")
+  billingPostalCode String?       @map("BillingPostalCode")
+  total             Decimal       @map("Total")
+  customer          Customer      @relation(fields: [customerId], references: [customerId], onDelete: NoAction, onUpdate: NoAction)
+  invoiceLine       InvoiceLine[]
+
+  @@index([customerId], map: "IFK_InvoiceCustomerId")
+}
+
+model InvoiceLine {
+  invoiceLineId Int     @id @default(autoincrement()) @map("InvoiceLineId")
+  invoiceId     Int     @map("InvoiceId")
+  trackId       Int     @map("TrackId")
+  unitPrice     Decimal @map("UnitPrice")
+  quantity      Int     @map("Quantity")
+  track         Track   @relation(fields: [trackId], references: [trackId], onDelete: NoAction, onUpdate: NoAction)
+  invoice       Invoice @relation(fields: [invoiceId], references: [invoiceId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([trackId], map: "IFK_InvoiceLineTrackId")
+  @@index([invoiceId], map: "IFK_InvoiceLineInvoiceId")
+}
+
+model MediaType {
+  mediaTypeId Int     @id @default(autoincrement()) @map("MediaTypeId")
+  name        String? @map("Name")
+  track       Track[]
+}
+
+model Playlist {
+  playlistId    Int             @id @default(autoincrement()) @map("PlaylistId")
+  name          String?         @map("Name")
+  playlistTrack PlaylistTrack[]
+}
+
+model PlaylistTrack {
+  playlistId Int      @map("PlaylistId")
+  trackId    Int      @map("TrackId")
+  track      Track    @relation(fields: [trackId], references: [trackId], onDelete: NoAction, onUpdate: NoAction)
+  playlist   Playlist @relation(fields: [playlistId], references: [playlistId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([playlistId, trackId])
+  @@index([trackId], map: "IFK_PlaylistTrackTrackId")
+  @@index([playlistId], map: "IFK_PlaylistTrackPlaylistId")
+}
+
+model Track {
+  trackId       Int             @id @default(autoincrement()) @map("TrackId")
+  name          String          @map("Name")
+  albumId       Int?            @map("AlbumId")
+  mediaTypeId   Int             @map("MediaTypeId")
+  genreId       Int?            @map("GenreId")
+  composer      String?         @map("Composer")
+  milliseconds  Int             @map("Milliseconds")
+  bytes         Int?            @map("Bytes")
+  unitPrice     Decimal         @map("UnitPrice")
+  invoiceLine   InvoiceLine[]
+  playlistTrack PlaylistTrack[]
+  mediaType     MediaType       @relation(fields: [mediaTypeId], references: [mediaTypeId], onDelete: NoAction, onUpdate: NoAction)
+  genre         Genre?          @relation(fields: [genreId], references: [genreId], onDelete: NoAction, onUpdate: NoAction)
+  album         Album?          @relation(fields: [albumId], references: [albumId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([mediaTypeId], map: "IFK_TrackMediaTypeId")
+  @@index([genreId], map: "IFK_TrackGenreId")
+  @@index([albumId], map: "IFK_TrackAlbumId")
+}

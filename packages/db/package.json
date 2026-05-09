@@ -1,0 +1,22 @@
+{
+  "name": "@row-chat/db",
+  "version": "1.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "prisma:tmpdb": "node --experimental-transform-types scripts/tmp-db.ts",
+    "prisma:pull:bare": "npm run prisma:tmpdb && npx prisma db pull --force --url file:tmp/.tmp.db && rm -f tmp/.tmp.db tmp/.tmp.db-shm tmp/.tmp.db-wal",
+    "prisma:case": "npx prisma-case-format -f prisma/schema.prisma",
+    "prisma:repl": "node --experimental-transform-types scripts/generate-repl-types.ts",
+    "prisma:pull": "npm run prisma:pull:bare && npm run prisma:case && npm run prisma:repl && npx prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.8.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "better-sqlite3": "^12.9.0",
+    "prisma": "^7.8.0"
+  }
+}

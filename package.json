@@ -1,0 +1,32 @@
+{
+  "name": "row-chat",
+  "private": true,
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @row-chat/web",
+    "build": "npm run build -w @row-chat/web",
+    "lint": "eslint .",
+    "typecheck": "tsc -b --noEmit",
+    "test": "npm test -w @row-chat/web",
+    "prisma:pull": "npm run prisma:pull -w @row-chat/db && npm run clear-vite-deps -w @row-chat/web"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^25.6.2",
+    "eslint": "^10.3.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.6.0",
+    "prettier": "^3.8.3",
+    "prettier-plugin-organize-imports": "^4.3.0",
+    "tsx": "^4.21.0",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.59.2"
+  }
+}

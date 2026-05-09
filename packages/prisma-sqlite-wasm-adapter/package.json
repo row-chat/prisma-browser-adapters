@@ -1,0 +1,36 @@
+{
+  "name": "@row-chat/prisma-sqlite-wasm-adapter",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./src/prisma-sqlite-wasm-adapter.ts",
+  "types": "./src/prisma-sqlite-wasm-adapter.ts",
+  "exports": {
+    ".": "./src/prisma-sqlite-wasm-adapter.ts"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "check:readme": "diff -q README.md ../../README.md || (echo 'Root README.md is out of sync with packages/prisma-sqlite-wasm-adapter/README.md.' >&2 && exit 1)",
+    "build": "npm run check:readme && tsc -p tsconfig.build.json",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "publishConfig": {
+    "access": "public",
+    "main": "./dist/prisma-sqlite-wasm-adapter.js",
+    "types": "./dist/prisma-sqlite-wasm-adapter.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/prisma-sqlite-wasm-adapter.d.ts",
+        "import": "./dist/prisma-sqlite-wasm-adapter.js"
+      }
+    }
+  },
+  "dependencies": {
+    "@prisma/driver-adapter-utils": "^7.8.0",
+    "@sqlite.org/sqlite-wasm": "^3.53.0-build1"
+  }
+}

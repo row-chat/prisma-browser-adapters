@@ -1,0 +1,16 @@
+.repl-editor {
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+.repl-editor-placeholder {
+  position: absolute;
+  top: 8px;
+  left: 14px;
+  color: #555;
+  font-family: monospace;
+  font-size: 14px;
+  pointer-events: none;
+  z-index: 1;
+}
