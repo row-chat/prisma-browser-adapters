@@ -15,7 +15,7 @@ export function AppHeader() {
         </Group>
         <Button
           component="a"
-          href="https://github.com/row-chat/prisma-sqlite-wasm-adapter"
+          href="https://github.com/row-chat/prisma-browser-adapters"
           target="_blank"
           rel="noopener noreferrer"
           variant="default"

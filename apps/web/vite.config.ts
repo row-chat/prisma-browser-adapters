@@ -36,7 +36,7 @@ const prismaWasmLoader: Plugin = {
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/prisma-sqlite-wasm-adapter/',
+  base: '/prisma-browser-adapters/',
   plugins: [react(), wasm(), prismaWasmLoader],
   optimizeDeps: {
     exclude: ['@sqlite.org/sqlite-wasm'],

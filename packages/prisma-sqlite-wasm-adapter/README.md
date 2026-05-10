@@ -10,7 +10,7 @@ npm install @row-chat/prisma-sqlite-wasm-adapter @sqlite.org/sqlite-wasm
 
 ## Demo
 
-A live example is deployed at [row-chat.github.io/prisma-sqlite-wasm-adapter](https://row-chat.github.io/prisma-sqlite-wasm-adapter/), with source at [github.com/row-chat/prisma-sqlite-wasm-adapter](https://github.com/row-chat/prisma-sqlite-wasm-adapter). It loads the [Chinook](https://github.com/lerocha/chinook-database) sample database in the browser and exposes it through a Prisma Client REPL, a raw SQL REPL, and an embedded [Prisma Studio](https://www.prisma.io/studio) — all running entirely client-side with SQLite-WASM and OPFS.
+A live example is deployed at [row-chat.github.io/prisma-browser-adapters](https://row-chat.github.io/prisma-browser-adapters/), with source at [github.com/row-chat/prisma-browser-adapters](https://github.com/row-chat/prisma-browser-adapters). It loads the [Chinook](https://github.com/lerocha/chinook-database) sample database in the browser and exposes it through a Prisma Client REPL, a raw SQL REPL, and an embedded [Prisma Studio](https://www.prisma.io/studio) — all running entirely client-side with SQLite-WASM and OPFS.
 
 ## Why a "remote"?
 
@@ -85,7 +85,7 @@ new SqliteWasmAdapterFactory(remote, {
 
 ## Migrations
 
-`prisma migrate` is a Node CLI and can't reach a database living in a browser. Use it during development (`prisma migrate dev` on a local SQLite file) to author `.sql` migration files, then bundle those files with the app and apply them on worker startup, tracking progress via `PRAGMA user_version`. See the [example app](https://github.com/row-chat/prisma-sqlite-wasm-adapter/blob/main/apps/web/src/db/sqlite-worker.ts) for one approach.
+`prisma migrate` is a Node CLI and can't reach a database living in a browser. Use it during development (`prisma migrate dev` on a local SQLite file) to author `.sql` migration files, then bundle those files with the app and apply them on worker startup, tracking progress via `PRAGMA user_version`. See the [example app](https://github.com/row-chat/prisma-browser-adapters/blob/main/apps/web/src/db/sqlite-worker.ts) for one approach.
 
 ## License
 
