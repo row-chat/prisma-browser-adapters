@@ -79,6 +79,10 @@ function prepareArg(
 // `step`/`prepare_v2` call yields. Without a mutex two concurrent Prisma
 // queries can interleave their prepare/bind/step sequences on the same
 // connection and corrupt each other.
+//
+// This serializes reads too. SQLite's WAL mode allows concurrent readers,
+// but we hold one db handle, so the Asyncify VM is the contention point.
+// Parallel reads would require multiple remotes / connections.
 class Mutex {
   #locked = false;
   #queue: Array<() => void> = [];
@@ -254,7 +258,7 @@ class WaSqliteAdapter {
     try {
       await this.remote.executeScript(script);
     } catch (error) {
-      convertError(error);
+      return convertError(error);
     } finally {
       release();
     }
@@ -274,7 +278,7 @@ class WaSqliteAdapter {
       await this.remote.beginTransaction();
     } catch (error) {
       release();
-      throw error;
+      return convertError(error);
     }
     return new WaSqliteTransaction(this.remote, release, this.adapterOptions);
   }
@@ -300,8 +304,11 @@ export class WaSqliteAdapterFactory {
   }
 
   async connectToShadowDb(): Promise<WaSqliteAdapter> {
-    throw new Error(
-      'connectToShadowDb is not supported in the browser. Run migrations at build time.',
-    );
+    throw new DriverAdapterError({
+      kind: 'GenericJs',
+      id: 1,
+      originalMessage:
+        'connectToShadowDb is not supported in the browser. Run migrations at build time.',
+    });
   }
 }

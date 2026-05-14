@@ -45,6 +45,9 @@ export function createSqliteWasmRemote(
   sqlite3: Sqlite3Subset,
 ): SqliteWasmRemote {
   return {
+    // Single-statement only: db.prepare compiles the first statement and
+    // ignores any trailing SQL. Prisma's engine sends one statement per
+    // queryRaw/executeRaw call; use executeScript for multi-statement SQL.
     async queryRaw({
       sql,
       args,

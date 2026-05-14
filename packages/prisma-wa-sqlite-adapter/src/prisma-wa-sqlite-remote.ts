@@ -52,6 +52,10 @@ export function createWaSqliteRemote(
   db: number,
 ): WaSqliteRemote {
   return {
+    // Single-statement only: prepare_v2 compiles the first statement and
+    // returns the remaining SQL via `prepared.sql`, which we ignore. Prisma's
+    // engine sends one statement per queryRaw/executeRaw call; use
+    // executeScript for multi-statement SQL.
     async queryRaw({
       sql,
       args,
@@ -60,6 +64,8 @@ export function createWaSqliteRemote(
       args: unknown[];
     }): Promise<SqliteResultSet> {
       const prepared = await sqlite3.prepare_v2(db, sql);
+      // null = empty / whitespace / comment-only SQL. Prisma never sends
+      // this, so an empty result is the safe response if it ever appears.
       if (prepared === null) {
         return { columnNames: [], declTypes: [], rows: [] };
       }
@@ -77,6 +83,8 @@ export function createWaSqliteRemote(
         const declTypes = Array.from({ length: n }, (_, i) =>
           sqlite3.column_decltype(stmt, i),
         );
+        // N+1 calls per row (column_count + N × column). wa-sqlite exposes
+        // no batch row helper — this is the API's ceiling, not a defect.
         const rows: unknown[][] = [];
         while ((await sqlite3.step(stmt)) === SQLITE_ROW) {
           const row: unknown[] = new Array(n);
@@ -99,9 +107,10 @@ export function createWaSqliteRemote(
       const { stmt } = prepared;
       try {
         await sqlite3.bind_collection(stmt, args);
-        while ((await sqlite3.step(stmt)) === SQLITE_ROW) {
-          // drain RETURNING rows; rowsAffected comes from changes()
-        }
+        // Drain any rows so step() reaches DONE and the statement finalizes
+        // cleanly. Prisma routes RETURNING through queryRaw, not executeRaw,
+        // so in practice this loop runs zero iterations.
+        while ((await sqlite3.step(stmt)) === SQLITE_ROW) {}
       } finally {
         await sqlite3.finalize(stmt);
       }

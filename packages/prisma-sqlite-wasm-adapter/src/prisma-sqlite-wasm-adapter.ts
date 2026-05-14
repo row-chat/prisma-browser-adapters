@@ -76,6 +76,10 @@ function prepareArg(
   return value;
 }
 
+// Serializes every adapter call — including reads. SQLite's WAL mode allows
+// concurrent readers, but we only hold one Sqlite3DB handle through the
+// remote, so the WASM VM itself is the contention point. Parallel reads
+// would require multiple remotes / connections.
 class Mutex {
   #locked = false;
   #queue: Array<() => void> = [];
@@ -248,7 +252,7 @@ class SqliteWasmAdapter {
     try {
       await this.remote.executeScript(script);
     } catch (error) {
-      convertError(error);
+      return convertError(error);
     } finally {
       release();
     }
@@ -268,7 +272,7 @@ class SqliteWasmAdapter {
       await this.remote.beginTransaction();
     } catch (error) {
       release();
-      throw error;
+      return convertError(error);
     }
     return new SqliteWasmTransaction(this.remote, release, this.adapterOptions);
   }
@@ -294,8 +298,11 @@ export class SqliteWasmAdapterFactory {
   }
 
   async connectToShadowDb(): Promise<SqliteWasmAdapter> {
-    throw new Error(
-      'connectToShadowDb is not supported in the browser. Run migrations at build time.',
-    );
+    throw new DriverAdapterError({
+      kind: 'GenericJs',
+      id: 1,
+      originalMessage:
+        'connectToShadowDb is not supported in the browser. Run migrations at build time.',
+    });
   }
 }
