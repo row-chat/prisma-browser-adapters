@@ -9,7 +9,6 @@
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --noEmit",
     "preview": "vite preview",
-    "test": "node --experimental-transform-types --test 'test/**/*.test.ts'",
     "clear-vite-deps": "rm -rf node_modules/.vite/deps"
   },
   "dependencies": {

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { beforeEach, describe, it } from 'node:test';
-import { createTestClient } from '../db/prisma-sqlite-test-client.ts';
+import { createTestClient } from './prisma-sqlite-test-client.ts';
 
 type Client = Awaited<ReturnType<typeof createTestClient>>;
 

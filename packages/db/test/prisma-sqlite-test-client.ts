@@ -10,7 +10,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const migrationsDir = join(__dirname, '../../../../packages/db/migrations');
+const migrationsDir = join(__dirname, '../migrations');
 const migrationSql = readdirSync(migrationsDir)
   .filter((f: string) => f.endsWith('.sql'))
   .sort()

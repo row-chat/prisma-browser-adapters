@@ -9,12 +9,15 @@
     "prisma:pull:bare": "npm run prisma:tmpdb && npx prisma db pull --force --url file:tmp/.tmp.db && rm -f tmp/.tmp.db tmp/.tmp.db-shm tmp/.tmp.db-wal",
     "prisma:case": "npx prisma-case-format -f prisma/schema.prisma",
     "prisma:repl": "node --experimental-transform-types scripts/generate-repl-types.ts",
-    "prisma:pull": "npm run prisma:pull:bare && npm run prisma:case && npm run prisma:repl && npx prisma generate"
+    "prisma:pull": "npm run prisma:pull:bare && npm run prisma:case && npm run prisma:repl && npx prisma generate",
+    "test": "node --experimental-transform-types --test 'test/**/*.test.ts'"
   },
   "dependencies": {
     "@prisma/client": "^7.8.0"
   },
   "devDependencies": {
+    "@row-chat/prisma-sqlite-wasm-adapter": "*",
+    "@sqlite.org/sqlite-wasm": "^3.53.0-build1",
     "@types/better-sqlite3": "^7.6.13",
     "better-sqlite3": "^12.9.0",
     "prisma": "^7.8.0"

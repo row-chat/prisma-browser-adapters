@@ -110,7 +110,9 @@ export function createWaSqliteRemote(
         // Drain any rows so step() reaches DONE and the statement finalizes
         // cleanly. Prisma routes RETURNING through queryRaw, not executeRaw,
         // so in practice this loop runs zero iterations.
-        while ((await sqlite3.step(stmt)) === SQLITE_ROW) {}
+        while ((await sqlite3.step(stmt)) === SQLITE_ROW) {
+          /* discard */
+        }
       } finally {
         await sqlite3.finalize(stmt);
       }
