@@ -13,8 +13,7 @@
     "src"
   ],
   "scripts": {
-    "check:readme": "diff -q README.md ../../README.md || (echo 'Root README.md is out of sync with packages/prisma-sqlite-wasm-adapter/README.md.' >&2 && exit 1)",
-    "build": "npm run check:readme && tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build"
   },

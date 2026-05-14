@@ -10,14 +10,24 @@ npm install @row-chat/prisma-sqlite-wasm-adapter @sqlite.org/sqlite-wasm
 
 ## Demo
 
-A live example is deployed at [row-chat.github.io/prisma-browser-adapters](https://row-chat.github.io/prisma-browser-adapters/), with source at [github.com/row-chat/prisma-browser-adapters](https://github.com/row-chat/prisma-browser-adapters). It loads the [Chinook](https://github.com/lerocha/chinook-database) sample database in the browser and exposes it through a Prisma Client REPL, a raw SQL REPL, and an embedded [Prisma Studio](https://www.prisma.io/studio) — all running entirely client-side with SQLite-WASM and OPFS.
+The [`prisma-browser-adapters` demo](https://row-chat.github.io/prisma-browser-adapters/) loads Chinook in the browser and exposes it through a Prisma Client REPL, a SQL REPL, and an embedded Prisma Studio — all client-side.
+
+## When to choose this over `wa-sqlite`
+
+`@sqlite.org/sqlite-wasm` is the official SQLite WASM build, so it tracks upstream SQLite releases directly and ships well-tested OPFS support. Trade-offs worth knowing:
+
+- Its OPFS API is synchronous and can only run inside a Worker. That's a hard constraint, not a recommendation — there's no way to use OPFS on the main thread with this build.
+- For sharing one database across browser tabs, a `SharedWorker` is the obvious topology: the OPFS connection lives in the shared worker and every tab attaches to it. No cross-tab locking required.
+
+If you need wa-sqlite's main-thread OPFS or its `OPFSCoopSyncVFS` for SharedWorker-less multi-tab access, look at [`@row-chat/prisma-wa-sqlite-adapter`](../prisma-wa-sqlite-adapter) instead.
 
 ## Why a "remote"?
 
-`sqlite-wasm`'s OPFS-backed APIs are synchronous and must run in a Worker. This adapter splits the work in two:
+The adapter accepts any object matching the `SqliteWasmRemote` shape, which decouples it from your worker topology. The expected setup:
 
-- **In the worker:** wrap the sqlite-wasm DB with `createSqliteWasmRemote(db, sqlite3)` and expose it (e.g. via [Comlink](https://www.npmjs.com/package/comlink)).
-- **On the main thread:** wrap the worker proxy with `SqliteWasmAdapterFactory(remote)` and pass the result to `PrismaClient`.
+- **SharedWorker.** One worker per origin holds the sqlite-wasm DB; every tab attaches to it. The shared worker is the natural serialization point and the only place the synchronous OPFS API can legally run.
+
+Construct a `SqliteWasmRemote` from sqlite-wasm directly with `createSqliteWasmRemote(db, sqlite3)`, expose it via [Comlink](https://www.npmjs.com/package/comlink) or your transport of choice, then hand the proxy to `SqliteWasmAdapterFactory` on the main thread.
 
 ## Usage
 
@@ -65,9 +75,7 @@ const adapter = new SqliteWasmAdapterFactory(remote);
 export const prisma = new PrismaClient({ adapter });
 ```
 
-`await prisma.employee.findMany()` now runs entirely in the browser.
-
-A `SharedWorker` is used so that every browser tab on the same origin sees the same database — they all attach to the single OPFS connection living in the shared worker.
+`await prisma.employee.findMany()` now runs entirely in the browser, with every tab on the origin sharing the database through the SharedWorker.
 
 ## Options
 
@@ -85,7 +93,13 @@ new SqliteWasmAdapterFactory(remote, {
 
 ## Migrations
 
-`prisma migrate` is a Node CLI and can't reach a database living in a browser. Use it during development (`prisma migrate dev` on a local SQLite file) to author `.sql` migration files, then bundle those files with the app and apply them on worker startup, tracking progress via `PRAGMA user_version`. See the [example app](https://github.com/row-chat/prisma-browser-adapters/blob/main/apps/web/src/db/sqlite-worker.ts) for one approach.
+`prisma migrate` is a Node CLI and can't reach a database living in a browser. Use it during development (`prisma migrate dev` on a local SQLite file) to author `.sql` migration files, then bundle those files with the app and apply them on worker startup, tracking progress via `PRAGMA user_version`.
+
+## Notes
+
+- The adapter doesn't import sqlite-wasm directly — it talks to the `SqliteWasmRemote` interface. This is what makes the worker topology the consumer's decision.
+- `sqlite3_column_decltype` is available through `sqlite3.capi`, so declared column types feed Prisma's type resolution directly — value inference is only the fallback.
+- Per-tab serialization is handled by an internal mutex. Cross-tab serialization is the SharedWorker's job: there's only one connection, so there's nothing to coordinate.
 
 ## License
 
