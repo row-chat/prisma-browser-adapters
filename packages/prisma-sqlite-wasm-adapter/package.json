@@ -2,6 +2,15 @@
   "name": "@row-chat/prisma-sqlite-wasm-adapter",
   "version": "1.0.2",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/row-chat/prisma-browser-adapters.git",
+    "directory": "packages/prisma-sqlite-wasm-adapter"
+  },
+  "homepage": "https://github.com/row-chat/prisma-browser-adapters/tree/main/packages/prisma-sqlite-wasm-adapter#readme",
+  "bugs": {
+    "url": "https://github.com/row-chat/prisma-browser-adapters/issues"
+  },
   "type": "module",
   "main": "./src/prisma-sqlite-wasm-adapter.ts",
   "types": "./src/prisma-sqlite-wasm-adapter.ts",
