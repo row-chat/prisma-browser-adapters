@@ -1,14 +1,16 @@
 import react from '@vitejs/plugin-react';
+import { createRequire } from 'module';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import type { Plugin } from 'vite';
 import { defineConfig } from 'vite';
 import wasm from 'vite-plugin-wasm';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const wasmPath = path.resolve(
-  __dirname,
-  '../../node_modules/.prisma/client/query_compiler_fast_bg.wasm',
+// Resolve through `@row-chat/sqlite-db/edge` so the path tracks wherever the
+// generated client lives (per-package output dir, configurable in schema).
+const requireFrom = createRequire(import.meta.url);
+const wasmPath = path.join(
+  path.dirname(requireFrom.resolve('@row-chat/sqlite-db/edge')),
+  'query_compiler_fast_bg.wasm',
 );
 
 // Intercepts Prisma's #wasm-compiler-loader and uses fetch-based loading
