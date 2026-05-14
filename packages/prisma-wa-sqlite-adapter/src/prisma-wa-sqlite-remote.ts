@@ -17,12 +17,15 @@ export type WaSqliteRemote = {
 
 // Structural subset of wa-sqlite's SQLiteAPI. Only the calls we make are
 // declared, so consumers can pass the value returned from
-// `SQLiteAsyncESMFactory(Module)` (or its sync sibling) without type friction.
+// `Factory(Module)` (sync or async build) without type friction.
+//
+// We use `statements()` rather than `prepare_v2` directly. `prepare_v2` in
+// wa-sqlite takes a SQL *pointer* into WASM heap (not a JS string), which
+// would force every call site to manage `str_new`/`str_value`/`str_finish`.
+// `statements()` handles that lifecycle internally and finalizes the stmt
+// when the loop exits.
 export type WaSqliteAPI = {
-  prepare_v2(
-    db: number,
-    sql: string | ArrayBufferView | ArrayBuffer,
-  ): Promise<{ stmt: number; sql: number } | null>;
+  statements(db: number, sql: string): AsyncIterable<number>;
   bind_collection(
     stmt: number,
     bindings: unknown[] | Record<string, unknown>,
@@ -30,9 +33,7 @@ export type WaSqliteAPI = {
   step(stmt: number): Promise<number>;
   column_count(stmt: number): number;
   column_name(stmt: number, i: number): string;
-  column_decltype(stmt: number, i: number): string | null;
   column(stmt: number, i: number): unknown;
-  finalize(stmt: number): Promise<number>;
   exec(
     db: number,
     sql: string,
@@ -52,10 +53,9 @@ export function createWaSqliteRemote(
   db: number,
 ): WaSqliteRemote {
   return {
-    // Single-statement only: prepare_v2 compiles the first statement and
-    // returns the remaining SQL via `prepared.sql`, which we ignore. Prisma's
-    // engine sends one statement per queryRaw/executeRaw call; use
-    // executeScript for multi-statement SQL.
+    // Single-statement only: we consume the first iteration of `statements`
+    // and return. Prisma sends one statement per queryRaw/executeRaw call;
+    // use executeScript for multi-statement SQL.
     async queryRaw({
       sql,
       args,
@@ -63,14 +63,7 @@ export function createWaSqliteRemote(
       sql: string;
       args: unknown[];
     }): Promise<SqliteResultSet> {
-      const prepared = await sqlite3.prepare_v2(db, sql);
-      // null = empty / whitespace / comment-only SQL. Prisma never sends
-      // this, so an empty result is the safe response if it ever appears.
-      if (prepared === null) {
-        return { columnNames: [], declTypes: [], rows: [] };
-      }
-      const { stmt } = prepared;
-      try {
+      for await (const stmt of sqlite3.statements(db, sql)) {
         if (args.length > 0) await sqlite3.bind_collection(stmt, args);
         const n = sqlite3.column_count(stmt);
         if (n === 0) {
@@ -80,9 +73,12 @@ export function createWaSqliteRemote(
         const columnNames = Array.from({ length: n }, (_, i) =>
           sqlite3.column_name(stmt, i),
         );
-        const declTypes = Array.from({ length: n }, (_, i) =>
-          sqlite3.column_decltype(stmt, i),
-        );
+        // wa-sqlite doesn't wrap `sqlite3_column_decltype`, so we always
+        // pass null and let the result-set resolver fall back to per-value
+        // type inference. This is less precise than declared types (e.g.
+        // an all-NULL integer column defaults to Int32), but Prisma's
+        // engine corrects from the schema anyway.
+        const declTypes: (string | null)[] = new Array(n).fill(null);
         // N+1 calls per row (column_count + N × column). wa-sqlite exposes
         // no batch row helper — this is the API's ceiling, not a defect.
         const rows: unknown[][] = [];
@@ -92,9 +88,10 @@ export function createWaSqliteRemote(
           rows.push(row);
         }
         return { columnNames, declTypes, rows };
-      } finally {
-        await sqlite3.finalize(stmt);
       }
+      // Empty / comment-only SQL — Prisma never sends this, but return an
+      // empty result if it ever happens.
+      return { columnNames: [], declTypes: [], rows: [] };
     },
 
     async executeRaw(sql: string, args: unknown[]): Promise<number> {
@@ -102,10 +99,7 @@ export function createWaSqliteRemote(
         await sqlite3.exec(db, sql);
         return sqlite3.changes(db);
       }
-      const prepared = await sqlite3.prepare_v2(db, sql);
-      if (prepared === null) return 0;
-      const { stmt } = prepared;
-      try {
+      for await (const stmt of sqlite3.statements(db, sql)) {
         await sqlite3.bind_collection(stmt, args);
         // Drain any rows so step() reaches DONE and the statement finalizes
         // cleanly. Prisma routes RETURNING through queryRaw, not executeRaw,
@@ -113,10 +107,9 @@ export function createWaSqliteRemote(
         while ((await sqlite3.step(stmt)) === SQLITE_ROW) {
           /* discard */
         }
-      } finally {
-        await sqlite3.finalize(stmt);
+        return sqlite3.changes(db);
       }
-      return sqlite3.changes(db);
+      return 0;
     },
 
     async executeScript(script: string): Promise<void> {

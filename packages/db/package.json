@@ -20,6 +20,7 @@
     "@sqlite.org/sqlite-wasm": "^3.53.0-build1",
     "@types/better-sqlite3": "^7.6.13",
     "better-sqlite3": "^12.9.0",
-    "prisma": "^7.8.0"
+    "prisma": "^7.8.0",
+    "wa-sqlite": "^1.0.0"
   }
 }
