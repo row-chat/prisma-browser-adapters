@@ -12,7 +12,8 @@
     "pglite:server:bare": "pglite-server --extensions pgcrypto,@electric-sql/pglite/contrib/uuid_ossp:uuid_ossp --db=memory://",
     "pglite:server": "tsx scripts/server.ts",
     "prisma:pull": "tsx scripts/prisma-pull.ts",
-    "prisma:pull:bare": "prisma db pull --force --url postgresql://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable && prisma-case-format --file prisma/schema.prisma && prisma generate",
+    "prisma:pull:bare": "prisma db pull --force --url postgresql://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable && prisma-case-format --file prisma/schema.prisma && npm run prisma:repl && prisma generate",
+    "prisma:repl": "node --experimental-transform-types scripts/generate-repl-types.ts",
     "test": "node --experimental-transform-types --test 'test/**/*.test.ts'"
   },
   "dependencies": {
